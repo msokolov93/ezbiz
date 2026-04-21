@@ -6,8 +6,10 @@
     "start": "webpack serve --mode development --open"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@react-spring/web": "^9.7.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-tinder-card": "^1.6.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
