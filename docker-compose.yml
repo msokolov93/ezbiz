@@ -39,11 +39,6 @@ services:
 
   frontend:
     build: ./frontend
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
     ports:
       - "80:80"
     networks:
