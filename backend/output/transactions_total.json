@@ -1,0 +1,128 @@
+[
+  {
+    "counterparty_name": "Acme Sarl",
+    "total_amount": 4966.65,
+    "matched_invoice_company": "Acme S.à r.l.",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "ADMINISTRATION DE L'ENREGISTREMENT",
+    "total_amount": 1731.7,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "AMZN LUXEMBOURG",
+    "total_amount": 148.87,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "BCEE",
+    "total_amount": -46.14,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "EASYBIZ PAYROLL",
+    "total_amount": -22590.62,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "ENOVOS LUXEMBOURG",
+    "total_amount": -803.42,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "GLOBEX S.A.",
+    "total_amount": 900.9,
+    "matched_invoice_company": "Globex S.A.",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "GLOBEXS.A.",
+    "total_amount": 1825.2,
+    "matched_invoice_company": "Globex S.A.",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "Hooli SARL-S",
+    "total_amount": 4914.07,
+    "matched_invoice_company": "Hooli SARL-S",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "HOOLISARL-S",
+    "total_amount": 81.9,
+    "matched_invoice_company": "Hooli SARL-S",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "IMMO LUX SA",
+    "total_amount": -7500,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "INITECH LUXEMBOURG SARL",
+    "total_amount": 3848.45,
+    "matched_invoice_company": "Initech Luxembourg SARL",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "INITECHLUXEMBOURGSARL",
+    "total_amount": 4551.3,
+    "matched_invoice_company": "Initech Luxembourg SARL",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "PAPETERIE LUX",
+    "total_amount": -521.74,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "Pied Piper SCA / IBAN LU28 0019 4006 4475 0000",
+    "total_amount": 2462.05,
+    "matched_invoice_company": "Pied Piper SCA",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "SLACK TECHNOLOGIES",
+    "total_amount": -267,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "STARK CONSULTING S.A.",
+    "total_amount": 7227.15,
+    "matched_invoice_company": "Stark Consulting S.A.",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "STARKCONSULTINGS.A.",
+    "total_amount": 1076.4,
+    "matched_invoice_company": "Stark Consulting S.A.",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "STRIPE PAYMENTS LUXEMBOURG",
+    "total_amount": 2720.73,
+    "matched_invoice_company": null,
+    "match_status": "none"
+  },
+  {
+    "counterparty_name": "Umbrella SCS / IBAN LU28 0019 4006 4475 0000",
+    "total_amount": 9259.94,
+    "matched_invoice_company": "Umbrella SCS",
+    "match_status": "all"
+  },
+  {
+    "counterparty_name": "WAYNE INDUSTRIES SARL",
+    "total_amount": 6458.18,
+    "matched_invoice_company": "Wayne Industries Sarl",
+    "match_status": "all"
+  }
+]

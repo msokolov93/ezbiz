@@ -1,0 +1,38 @@
+[
+  {
+    "customer_name": "Acme S.à r.l.",
+    "total_invoiced": 4369.95
+  },
+  {
+    "customer_name": "Globex S.A.",
+    "total_invoiced": 3621.15
+  },
+  {
+    "customer_name": "Hooli SARL-S",
+    "total_invoiced": 4258.8
+  },
+  {
+    "customer_name": "Initech Luxembourg SARL",
+    "total_invoiced": 8576.1
+  },
+  {
+    "customer_name": "PAYOUT TOTAL",
+    "total_invoiced": 2720.73
+  },
+  {
+    "customer_name": "Pied Piper SCA",
+    "total_invoiced": 2474.55
+  },
+  {
+    "customer_name": "Stark Consulting S.A.",
+    "total_invoiced": 8207.55
+  },
+  {
+    "customer_name": "Umbrella SCS",
+    "total_invoiced": 8149.05
+  },
+  {
+    "customer_name": "Wayne Industries Sarl",
+    "total_invoiced": 6458.4
+  }
+]
