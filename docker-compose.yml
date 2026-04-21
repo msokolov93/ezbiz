@@ -1,35 +1,57 @@
 services:
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: ../Dockerfile
+  db:
+    build: ./database
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
-      - "8080:80"
+      - "5432:5432"
+    networks:
+      - internal
 
   backend:
     build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - internal
+      - external
     ports:
       - "3000:3000"
-    depends_on:
-      - database
-    environment:
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  database:
-    build: ./database
-    ports:
-      - "5432:5432"
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      BACKEND_URL: ${BACKEND_URL}
+    ports:
+      - "80:80"
+    networks:
+      - external
+
+networks:
+  internal:
+  external:
 
 volumes:
   pgdata:
