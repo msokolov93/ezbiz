@@ -26,6 +26,11 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      FRONT_USER: ${FRONT_USER}
+      FRONT_EMAIL: ${FRONT_EMAIL}
+      FRONT_ROLE: ${FRONT_ROLE}
+    volumes:
+      - ./backend/output:/app/output
     networks:
       - internal
       - external

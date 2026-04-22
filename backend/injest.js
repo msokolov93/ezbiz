@@ -7,17 +7,22 @@
  * populates PostgreSQL tables (customers, invoices, invoice_line_items, users),
  * and writes ./output/access.json with the generated default user credentials.
  *
- * Required env var:
- *   DATABASE_URL  – postgres://user:pass@host:5432/dbname
+ * Required env vars (set in .env or environment):
+ *   DATABASE_URL      – postgres://user:pass@host:5432/dbname
+ *   DEFAULT_USERNAME  – username for the seeded user  (default: "user")
+ *   DEFAULT_EMAIL     – email for the seeded user      (default: "user@localhost")
+ *   DEFAULT_ROLE      – role for the seeded user       (default: "viewer")
  *
  * Required npm packages:
- *   pg, bcrypt
+ *   pg, bcrypt, dotenv
  */
+
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const fs     = require('fs');
 const path   = require('path');
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const INPUT_DIR  = path.join(__dirname, 'input');
 const OUTPUT_DIR = path.join(__dirname, 'output');
@@ -27,6 +32,24 @@ fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 // ─── DB pool ─────────────────────────────────────────────────────────────────
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Logs every write (INSERT/UPDATE/DELETE) with table name and row count.
+async function loggedQuery(client, sql, params) {
+  const match = sql.match(/^\s*(INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(\w+)/i);
+  if (match) {
+    const [, op, table] = match;
+    const start = Date.now();
+    try {
+      const result = await client.query(sql, params);
+      console.log(`[DB] ${op.replace(/\s+/g, ' ').toUpperCase()} ${table} — ${result.rowCount} row(s) affected (${Date.now() - start}ms)`);
+      return result;
+    } catch (err) {
+      console.error(`[DB] ${op.replace(/\s+/g, ' ').toUpperCase()} ${table} — ERROR: ${err.message}`);
+      throw err;
+    }
+  }
+  return client.query(sql, params);
+}
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,8 +109,22 @@ async function main() {
     const rawInvoices = readJson('invoices.json');
     const csvRows     = parseCsv('payout_report.csv');
 
-    // ── Build invoices array (same logic as before) ───────────────────────────
-    const invoicesArray = rawInvoices.map(entry => ({
+    // ── Extract credit notes → synthetic transactions ─────────────────────────
+    const creditNoteTransactions = rawInvoices
+      .filter(entry => entry.type === 'credit_note')
+      .map(cn => ({
+        id:                   cn.id,
+        date:                 cn.issue_date,
+        amount:               Math.abs(cn.total),
+        currency:             cn.currency ?? 'EUR',
+        description:          cn.line_items?.[0]?.line_id ?? cn.id,
+        customer_name:        cn.customer_name ?? null,
+        counterparty_name:    cn.customer_name ?? null,
+        structured_reference: cn.related_invoice ?? null,
+      }));
+
+    // ── Build invoices array (credit notes excluded) ──────────────────────────
+    const invoicesArray = rawInvoices.filter(entry => entry.type !== 'credit_note').map(entry => ({
       id:            entry.id,
       type:          entry.type,
       customer_id:   entry.customer_id   ?? null,
@@ -125,12 +162,13 @@ async function main() {
     // ── 1. Upsert customers ───────────────────────────────────────────────────
     console.log('\n── Inserting customers ──────────────────────────────────────');
 
-    const customersSeen = new Map(); // customer_id → true
+    const customersSeen = new Map();
 
     for (const inv of invoicesArray) {
       if (!inv.customer_id || customersSeen.has(inv.customer_id)) continue;
 
-      await client.query(
+      await loggedQuery(
+        client,
         `INSERT INTO customers (customer_id, name, vat_number)
          VALUES ($1, $2, $3)
          ON CONFLICT (customer_id) DO NOTHING`,
@@ -145,7 +183,8 @@ async function main() {
     console.log('\n── Inserting invoices ───────────────────────────────────────');
 
     for (const inv of invoicesArray) {
-      await client.query(
+      await loggedQuery(
+        client,
         `INSERT INTO invoices
            (id, type, customer_id, issue_date, due_date, currency,
             subtotal, tax_total, total, source)
@@ -165,26 +204,25 @@ async function main() {
         ]
       );
       console.log(`  ✓  invoice  ${inv.id}`);
+    }
 
-      // ── 3. Insert line items for this invoice ───────────────────────────────
-      for (const li of inv.line_items) {
-        await client.query(
-          `INSERT INTO invoice_line_items
-             (line_id, invoice_id, description, quantity, unit_price, tax_rate, amount)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)
-           ON CONFLICT (line_id) DO NOTHING`,
-          [
-            li.line_id,
-            inv.id,
-            li.description,
-            li.quantity,
-            li.unit_price,
-            li.tax_rate,
-            li.amount,
-          ]
-        );
-        console.log(`       line  ${li.line_id}`);
-      }
+    // ── 3. Insert transactions ────────────────────────────────────────────────
+    console.log('\n── Inserting transactions ───────────────────────────────────');
+
+    const transactionsData = [
+      ...JSON.parse(fs.readFileSync(path.join(INPUT_DIR, 'transactions.json'), 'utf8')),
+      ...creditNoteTransactions,
+    ];
+
+    for (const trx of transactionsData) {
+      await loggedQuery(
+        client,
+        `INSERT INTO transactions (id, transaction_date, amount, currency, description, customer_name, counterparty_name, structured_reference, unapplied_amount)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO NOTHING`,
+        [trx.id, trx.date, trx.amount, trx.currency, trx.description, trx.customer_name ?? null, trx.counterparty_name ?? null, trx.structured_reference ?? null, trx.amount]
+      );
+      console.log(`  ✓  transaction  ${trx.id}`);
     }
 
     // ── 4. Create default user ────────────────────────────────────────────────
@@ -193,20 +231,25 @@ async function main() {
     const plainPassword  = generatePassword();
     const password_hash  = await bcrypt.hash(plainPassword, 12);
 
-    await client.query(
+    const defaultUsername = process.env.FRONT_USER  || 'user';
+    const defaultEmail    = process.env.FRONT_EMAIL || 'user@localhost';
+    const defaultRole     = process.env.FRONT_ROLE  || 'viewer';
+
+    await loggedQuery(
+      client,
       `INSERT INTO users (username, email, password_hash, role)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (username) DO NOTHING`,
-      ['user', 'user@localhost', password_hash, 'viewer']
+      [defaultUsername, defaultEmail, password_hash, defaultRole]
     );
 
-    console.log('  ✓  user  "user"  created');
+    console.log(`  ✓  user  "${defaultUsername}"  created`);
 
-    await client.query('COMMIT');
+    await client.query('COMMIT');  // single commit covers all inserts above
 
     // ── 5. Write access.json ──────────────────────────────────────────────────
     const accessData = {
-      username: 'user',
+      username: defaultUsername,
       password: plainPassword,
       note:     'This file is generated once. Store the password somewhere safe and delete this file.',
     };
@@ -218,6 +261,17 @@ async function main() {
     );
 
     console.log('\n  ✓  output/access.json  written');
+
+    // ── 6. Delete input files ─────────────────────────────────────────────────
+    const inputFiles = ['invoices.json', 'payout_report.csv', 'transactions.json'];
+    for (const file of inputFiles) {
+      const filePath = path.join(INPUT_DIR, file);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`  ✓  deleted  input/${file}`);
+      }
+    }
+
     console.log('\nDone.\n');
 
   } catch (err) {

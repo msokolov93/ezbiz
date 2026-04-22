@@ -25,4 +25,13 @@ module.exports = {
       template: './public/index.html',
     }),
   ],
+  devServer: {
+    port: 8080,
+    proxy: [
+      {
+        context: ['/api', '/health'],
+        target: 'http://localhost:3000',
+      },
+    ],
+  },
 };
