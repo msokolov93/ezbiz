@@ -1,6 +1,7 @@
 # ReconSwipe
 
 A three-module financial reconciliation app that matches incoming bank transactions against outstanding invoices.
+Choose a plane - by Company or All; Choose Invoice that needs reconcilation, Swipe on lonely transactions for a match! 
 
 ## Modules
 
@@ -45,3 +46,10 @@ Once running:
 ```
 
 `redeploy.sh` always runs `docker compose down -v` before rebuilding, which wipes the database volume and re-runs ingestion from the input files. This is intentional during development — use proper migrations before moving to production.
+
+## What is missing
+
+Right now there is no verification of customer state or deduplication of API requests. 
+In future, injestion and analytical service can grow into standalone application and become more sophisticated than just algorythm boiled down from edge cases in example.
+General assumption was made, that invoices needed reconciliation. In future user story might change to transaction reconciliation or moving funds between overpaid invoices. Integration with mail services, billing systems and fully-developed SaaS features.
+Overall this solution strikes a balance between PoC for a bold idea and replaceable parts for it. 
