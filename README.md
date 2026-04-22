@@ -14,7 +14,7 @@ All three run as Docker containers orchestrated by `docker-compose.yml`. They co
 
 ## Environment variables
 
-Copy `example.env` to `.env` and adjust before first run (`redeploy.sh` does this automatically if `.env` is missing).
+Copy `example.env` to `.env` and adjust before first run (`firstrun.sh` does this automatically if `.env` is missing).
 
 | Variable | Purpose |
 |----------|---------|
@@ -27,12 +27,21 @@ Copy `example.env` to `.env` and adjust before first run (`redeploy.sh` does thi
 ## First run
 
 ```bash
-./redeploy.sh
+bash firstrun.sh
 ```
 
+- Installs Docker if not already present
+- Copies `example.env` to `.env` if missing
+- Builds and starts all containers
+
+Once running:
 - Frontend is available at **http://localhost:80**
 - Login credentials are written to **`backend/output/access.json`** after the first successful ingestion
 
 ## Redeployment
+
+```bash
+./redeploy.sh
+```
 
 `redeploy.sh` always runs `docker compose down -v` before rebuilding, which wipes the database volume and re-runs ingestion from the input files. This is intentional during development — use proper migrations before moving to production.
