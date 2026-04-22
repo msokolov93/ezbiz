@@ -87,6 +87,7 @@ export default function ReconciliationPage() {
 
   // --- Initialization (API Call on Load) ---
   useEffect(() => {
+    if (!token) return;
     const fetchDashboardData = async () => {
       try {
         const response = await authFetch('/api/dashboard-report');
